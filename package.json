@@ -1,0 +1,49 @@
+{
+  "name": "@useresume/cli",
+  "version": "1.0.0",
+  "description": "CLI for AI-powered resume and cover letter generation via useresume.ai — built for OpenClaw agents",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "useresume": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "SKILL.md",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "useresume",
+    "cli",
+    "resume",
+    "cover-letter",
+    "ai",
+    "openclaw",
+    "clawhub",
+    "agent"
+  ],
+  "author": "UseResume",
+  "license": "MIT",
+  "dependencies": {
+    "@useresume/sdk": "^1.0.1",
+    "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/yargs": "^17.0.33",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/accelerated-ideas/useresume-cli"
+  }
+}
