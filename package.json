@@ -1,6 +1,6 @@
 {
   "name": "@useresume/cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CLI for AI-powered resume and cover letter generation via useresume.ai — built for OpenClaw agents",
   "type": "module",
   "main": "./dist/index.js",

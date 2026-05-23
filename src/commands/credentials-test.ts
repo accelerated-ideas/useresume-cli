@@ -2,20 +2,68 @@ import type { CommandModule } from "yargs";
 import { getConfig } from "../client.js";
 import { outputSuccess, outputError } from "../output.js";
 
-function extractErrorMessage(body: unknown, status: number, statusText: string): string {
+type ApiErrorBody = {
+  error?: unknown;
+  message?: unknown;
+  details?: unknown;
+  field_errors?: unknown;
+};
+
+function formatFieldErrors(fieldErrors: unknown): string | null {
+  if (!Array.isArray(fieldErrors)) {
+    return null;
+  }
+
+  const formatted = fieldErrors
+    .map((fieldError) => {
+      if (!fieldError || typeof fieldError !== "object") {
+        return null;
+      }
+
+      const { path, message } = fieldError as {
+        path?: unknown;
+        message?: unknown;
+      };
+
+      if (typeof message !== "string") {
+        return null;
+      }
+
+      const pathText = Array.isArray(path)
+        ? path.map((segment) => String(segment)).join(".")
+        : typeof path === "string"
+          ? path
+          : "";
+
+      return pathText ? `${pathText}: ${message}` : message;
+    })
+    .filter((value): value is string => Boolean(value));
+
+  return formatted.length > 0 ? formatted.join("; ") : null;
+}
+
+function extractErrorMessage(
+  body: unknown,
+  status: number,
+  statusText: string
+): string {
   if (typeof body === "object" && body !== null) {
-    const maybeBody = body as {
-      error?: unknown;
-      message?: unknown;
-    };
+    const maybeBody = body as ApiErrorBody;
+    const primaryMessage =
+      typeof maybeBody.message === "string"
+        ? maybeBody.message
+        : typeof maybeBody.error === "string"
+          ? maybeBody.error
+          : `API returned ${status} ${statusText}`;
 
-    if (typeof maybeBody.message === "string") {
-      return maybeBody.message;
-    }
+    const extraParts = [
+      typeof maybeBody.details === "string" ? maybeBody.details : null,
+      formatFieldErrors(maybeBody.field_errors),
+    ].filter((value): value is string => Boolean(value));
 
-    if (typeof maybeBody.error === "string") {
-      return maybeBody.error;
-    }
+    return extraParts.length > 0
+      ? `${primaryMessage} (${extraParts.join(" | ")})`
+      : primaryMessage;
   }
 
   return `API returned ${status} ${statusText}`;

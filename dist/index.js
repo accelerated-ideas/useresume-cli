@@ -18,7 +18,7 @@ function getConfig() {
         success: false,
         error: {
           code: "MISSING_API_KEY",
-          message: "USERESUME_API_KEY environment variable is not set. Get your key at https://useresume.ai/dashboard/api-platform"
+          message: "USERESUME_API_KEY environment variable is not set. Get your key at https://useresume.ai/account/api-platform"
         }
       })
     );
@@ -288,15 +288,32 @@ var command7 = {
 var run_get_default = command7;
 
 // src/commands/credentials-test.ts
+function formatFieldErrors(fieldErrors) {
+  if (!Array.isArray(fieldErrors)) {
+    return null;
+  }
+  const formatted = fieldErrors.map((fieldError) => {
+    if (!fieldError || typeof fieldError !== "object") {
+      return null;
+    }
+    const { path, message } = fieldError;
+    if (typeof message !== "string") {
+      return null;
+    }
+    const pathText = Array.isArray(path) ? path.map((segment) => String(segment)).join(".") : typeof path === "string" ? path : "";
+    return pathText ? `${pathText}: ${message}` : message;
+  }).filter((value) => Boolean(value));
+  return formatted.length > 0 ? formatted.join("; ") : null;
+}
 function extractErrorMessage(body, status, statusText) {
   if (typeof body === "object" && body !== null) {
     const maybeBody = body;
-    if (typeof maybeBody.message === "string") {
-      return maybeBody.message;
-    }
-    if (typeof maybeBody.error === "string") {
-      return maybeBody.error;
-    }
+    const primaryMessage = typeof maybeBody.message === "string" ? maybeBody.message : typeof maybeBody.error === "string" ? maybeBody.error : `API returned ${status} ${statusText}`;
+    const extraParts = [
+      typeof maybeBody.details === "string" ? maybeBody.details : null,
+      formatFieldErrors(maybeBody.field_errors)
+    ].filter((value) => Boolean(value));
+    return extraParts.length > 0 ? `${primaryMessage} (${extraParts.join(" | ")})` : primaryMessage;
   }
   return `API returned ${status} ${statusText}`;
 }
